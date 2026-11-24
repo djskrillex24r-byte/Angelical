@@ -94,6 +94,9 @@ input,select{background:color-mix(in srgb,var(--ac) 6%,var(--card));border:1px s
 .vb.on,.calb.on{background:linear-gradient(135deg,#b0337f,#7d1b5e);color:#fff;border-color:transparent}
 .calb input{position:absolute;inset:0;width:100%;height:100%;min-height:0;max-height:none;opacity:0;padding:0;border:0;margin:0;cursor:pointer}
 .ap .ck.fut{opacity:.4}
+#m-age .calb{margin:0;font-size:1rem;font-weight:700;color:var(--ac)}
+#m-age .calb.on{color:#fff}
+#m-age .calb.on span{color:#fff}
 .calb input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
 #ahh,#ahm,#ahp{flex:1;min-width:0}
 #ad,#ahh,#ahm,#ahp{height:52px}
@@ -218,9 +221,9 @@ input,select{background:color-mix(in srgb,var(--ac) 6%,var(--card));border:1px s
 <div id="m-age">
   <div class="card">
     <div class="ch"><i class="ic big" style="--m:var(--i-calplus)"></i>Nueva cita / Procedimiento</div>
-    <label for="an" style="margin-top:0"><i class="ic" style="--m:var(--i-user)"></i>Clienta</label>
+    <label for="an" style="margin-top:0"><i class="ic" style="--m:var(--i-user)"></i>Pacientes</label>
     <div class="cb">
-    <input id="an" autocomplete="off" placeholder="Escribe el nombre de la clienta…"><div class="sg" id="sgA" hidden></div></div>
+    <input id="an" autocomplete="off" placeholder="Escribe el nombre del paciente…"><div class="sg" id="sgA" hidden></div></div>
     <div style="margin:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
       <div><label for="ad"><i class="ic" style="--m:var(--i-cal)"></i>Fecha</label><input id="ad" type="date"></div>
       <div><label for="ah"><i class="ic" style="--m:var(--i-clock)"></i>Hora</label><input id="ah" type="time"><div hidden><select id="ahh"></select><select id="ahm"></select><select id="ahp"></select></div></div>
@@ -251,7 +254,7 @@ input,select{background:color-mix(in srgb,var(--ac) 6%,var(--card));border:1px s
   <button class="sec" id="up" style="width:100%;margin-top:10px">Subir registros a Google Sheets</button>
   <button class="sec" id="imp" style="width:100%;margin-top:8px">Importar backup (.json)</button>
   <input type="file" id="impf" accept=".json,application/json" hidden>
-  <label class="adm"><input type="checkbox" id="adm"><span><b>Admin</b><br><small>Permite editar citas y editar o borrar ventas del listado</small></span></label>
+  <label class="adm"><input type="checkbox" id="adm"><span><b>Admin</b><br><small>Permite editar o borrar ventas del listado</small></span></label>
 </details>
 
 <p class="mut">Los datos se guardan en este navegador. Exporta el CSV de vez en cuando como copia de seguridad.</p>
@@ -333,7 +336,7 @@ function duHtml(a){if(!a.du)return'';return'<div class="du"><b>'+fmtDu(a.du)+'</
 function renderAg(){var f='up',t=ds(0),out='',last='',q=ag.filter(function(a){return vsel?a.d===vsel:(a.d===t||a.d===ds(1))});
  q.sort(function(a,b){var x=a.d+(a.h||''),y=b.d+(b.h||'');return f==='past'?(y<x?-1:1):(x<y?-1:1)});
  q.forEach(function(a){if(a.d!==last){last=a.d;var c=q.filter(function(z){return z.d===a.d}).length;out+='<div class="day">'+dlabel(a.d)+' <span>· '+c+(c===1?' cita':' citas')+'</span></div>'}
-  out+='<div class="ap'+(a.ok?' dn':'')+'"><button class="ck'+(a.d>t?' fut':'')+'" data-k="'+a.id+'" title="Atendida">✓</button><div class="h">'+fmtH(a.h)+'</div><div class="i"><b>'+esc(a.n)+'</b>'+(a.ps&&a.ps.length?a.ps:(a.p?[a.p]:[])).map(function(n){return '<small>'+esc(n)+(pOf(n)?' · '+money(pOf(n)):'')+'</small>'}).join('')+'</div>'+duHtml(a)+(a.ok?'':'<div class="bt">'+(isAdm?'<button class="ab" data-e="'+a.id+'">EDITAR</button>':'')+'<button class="ab" data-x="'+a.id+'">BORRAR</button></div>')+'</div>'});
+  out+='<div class="ap'+(a.ok?' dn':'')+'"><button class="ck'+(a.d>t?' fut':'')+'" data-k="'+a.id+'" title="Atendida">✓</button><div class="h">'+fmtH(a.h)+'</div><div class="i"><b>'+esc(a.n)+'</b>'+(a.ps&&a.ps.length?a.ps:(a.p?[a.p]:[])).map(function(n){return '<small>'+esc(n)+(pOf(n)?' · '+money(pOf(n)):'')+'</small>'}).join('')+'</div>'+duHtml(a)+(a.ok?'':'<div class="bt">'+'<button class="ab" data-e="'+a.id+'">EDITAR</button>'+'<button class="ab" data-x="'+a.id+'">BORRAR</button></div>')+'</div>'});
  $('al').innerHTML=out;$('empty4').hidden=q.length>0;$('empty4').textContent=vsel?'No hay citas para este día.':'No hay citas para hoy ni para mañana.';$('vl').textContent=vsel?'Mostrando: '+dlabel(vsel):'Mostrando: hoy y mañana';
  $('a1').textContent=ag.filter(function(a){return a.d===t}).length;$('a2').textContent=ag.filter(function(a){return a.d===ds(1)}).length;$('a3').textContent=ag.filter(function(a){return a.d>=t}).length}
 function showMain(m){document.querySelectorAll('.mtabs button').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-m')===m)});$('m-reg').hidden=m!=='reg';$('m-age').hidden=m!=='age'}
@@ -443,7 +446,7 @@ $('vhm').onclick=function(){$('vd').value='';setV('')};
 $('vd').onchange=function(){setV($('vd').value)};
 $('vd').onclick=function(){try{if(this.showPicker)this.showPicker()}catch(e){}};
 $('adds').onclick=function(){var n=$('an').value.trim(),d=$('ad').value,h=$('ah').value;
- if(!n){info('Escribe el nombre de la clienta.');return}
+ if(!n){info('Escribe el nombre del paciente.');return}
  if(!d){info('Elige la fecha de la cita.');return}
  if(!h){info('Elige la hora de la cita.');return}
  var orig=editA?ag.filter(function(y){return y.id===editA})[0]:null;
@@ -455,7 +458,7 @@ $('adds').onclick=function(){var n=$('an').value.trim(),d=$('ad').value,h=$('ah'
  persistA();var was=editA;resetA();$('amsg').textContent=was?'Cita actualizada ✓':'Cita agendada para el '+d.split('-').reverse().join('/')+' ✓';setTimeout(function(){$('amsg').textContent=''},2500);all()};
 $('al').onclick=function(e){var k=e.target.getAttribute('data-k');if(k){var ak=ag.filter(function(y){return String(y.id)===k})[0];if(ak)confirmCita(ak);return}var c=e.target.getAttribute('data-e'),x=e.target.getAttribute('data-x');
  if(x){var ax=ag.filter(function(y){return String(y.id)===x})[0];if(ax&&ax.ok){info('Esta cita ya fue confirmada y está registrada, no se puede borrar.');return}ask('¿Desea borrar la cita?',function(){sheetDelCita(x);ag=ag.filter(function(a){return String(a.id)!==x});if(String(editA)===x)resetA();persistA();all()});return}
- if(c&&isAdm){var a=ag.filter(function(y){return String(y.id)===c})[0];if(!a)return;
+ if(c){var a=ag.filter(function(y){return String(y.id)===c})[0];if(!a)return;if(a.ok){info('Esta cita ya fue confirmada y quedó registrada, no se puede editar.');return}
   editA=a.id;cliSet('anS','an',a.n);$('ad').value=a.d;setH(a.h);avis=a.ps?a.ps.slice():(a.p?[a.p]:[]);renderAI();$('adu').value=a.du||'';if($('adu').selectedIndex<0)$('adu').selectedIndex=0;$('adds').textContent='Guardar cambios';$('acan').hidden=false;
   
   
@@ -465,7 +468,7 @@ function fillCliOld(){['nameS','anS'].forEach(function(id){var s=$(id),c=s.value
  s.innerHTML='<option value="">Elige una clienta…</option><option value="__new">➕ Clienta nueva</option>'+allNames().map(function(v){return '<option value="'+esc(v).replace(/"/g,'&quot;')+'">'+esc(v)+'</option>'}).join('');
  s.value=c;if(s.selectedIndex<0)s.selectedIndex=0})}
 function sgList(inp,box){var raw=$(inp).value.trim(),q=norm(raw),names=allNames(),ex=names.some(function(v){return norm(v)===q}),out='';
- if(q&&!ex)out+='<div class="nw" data-v="'+esc(raw).replace(/"/g,'&quot;')+'">➕ Clienta nueva: '+esc(raw)+'</div>';
+ if(q&&!ex)out+='<div class="nw" data-v="'+esc(raw).replace(/"/g,'&quot;')+'">➕ Paciente nuevo: '+esc(raw)+'</div>';
  names.filter(function(v){return !q||norm(v).indexOf(q)>-1}).forEach(function(v){out+='<div data-v="'+esc(v).replace(/"/g,'&quot;')+'">'+esc(v)+'</div>'});
  $(box).innerHTML=out;$(box).hidden=!out}
 function bindSg(inp,box){var i=$(inp),b=$(box);
