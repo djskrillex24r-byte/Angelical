@@ -94,6 +94,7 @@ input,select{background:color-mix(in srgb,var(--ac) 6%,var(--card));border:1px s
 .vb.on,.calb.on{background:linear-gradient(135deg,#b0337f,#7d1b5e);color:#fff;border-color:transparent}
 .calb input{position:absolute;inset:0;width:100%;height:100%;min-height:0;max-height:none;opacity:0;padding:0;border:0;margin:0;cursor:pointer}
 .ap .ck.fut{opacity:.4}
+.calb input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
 #ahh,#ahm,#ahp{flex:1;min-width:0}
 #ad,#ahh,#ahm,#ahp{height:52px}
 #ad{display:block;min-width:0;text-align:left}
@@ -440,6 +441,7 @@ function toMin(h){var p=h.split(':');return(+p[0])*60+(+p[1])}
 function setV(d){vsel=d||'';$('vhm').classList.toggle('on',!vsel);$('vd').parentNode.classList.toggle('on',!!vsel);$('vcs').textContent=vsel?vsel.split('-').reverse().join('/'):'Elegir día';renderAg()}
 $('vhm').onclick=function(){$('vd').value='';setV('')};
 $('vd').onchange=function(){setV($('vd').value)};
+$('vd').onclick=function(){try{if(this.showPicker)this.showPicker()}catch(e){}};
 $('adds').onclick=function(){var n=$('an').value.trim(),d=$('ad').value,h=$('ah').value;
  if(!n){info('Escribe el nombre de la clienta.');return}
  if(!d){info('Elige la fecha de la cita.');return}
