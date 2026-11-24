@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Angelical</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="ANGELICAL">
+<meta name="theme-color" content="#9b2a73">
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 --bg:#fbeef6;--pg:linear-gradient(180deg,#fdf3f9,#f6dff0);--card:#fff;--tx:#3a1c33;--mut:#85687a;--ac:#9b2a73;--ac2:#f7e1ee;--bd:#ecd3e3;--ok:#2f7d5b}
@@ -85,6 +89,11 @@ input,select{background:color-mix(in srgb,var(--ac) 6%,var(--card));border:1px s
 .it{border-radius:14px}
 .day{color:var(--ac)}
 .sum div{border-radius:14px}
+.vrow{display:flex;gap:8px;margin-bottom:6px}
+.vb,.calb{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid var(--bd);border-radius:14px;background:var(--card);color:var(--ac);font:inherit;font-weight:700;padding:12px;position:relative;cursor:pointer;overflow:hidden}
+.vb.on,.calb.on{background:linear-gradient(135deg,#b0337f,#7d1b5e);color:#fff;border-color:transparent}
+.calb input{position:absolute;inset:0;width:100%;height:100%;min-height:0;max-height:none;opacity:0;padding:0;border:0;margin:0;cursor:pointer}
+.ap .ck.fut{opacity:.4}
 #ahh,#ahm,#ahp{flex:1;min-width:0}
 #ad,#ahh,#ahm,#ahp{height:52px}
 #ad{display:block;min-width:0;text-align:left}
@@ -226,7 +235,8 @@ input,select{background:color-mix(in srgb,var(--ac) 6%,var(--card));border:1px s
   </div>
   <div class="card">
     <div class="sum"><div><b id="a1">0</b>Hoy</div><div><b id="a2">0</b>Mañana</div><div><b id="a3">0</b>Próximas</div></div>
-    <select id="af"><option value="up">Citas próximas</option><option value="past">Citas pasadas</option><option value="all">Todas las citas</option></select>
+    <div class="vrow"><button type="button" class="vb on" id="vhm">Hoy y mañana</button><label class="calb" title="Elegir un día"><i class="ic" style="--m:var(--i-cal)"></i><span id="vcs">Elegir día</span><input type="date" id="vd"></label></div>
+    <div class="mut" id="vl" style="margin:8px 0 0"></div>
     <div id="al"></div>
     <p class="mut" id="empty4" hidden>No hay citas.</p>
   </div>
@@ -281,7 +291,7 @@ function renderCli(){var q=norm($("q2").value),m={},mo=ds(0).slice(0,7);allNames
  $("empty2").hidden=a.length>0}
 var K2="estetica_procs_v1",procs=[];
 function loadP(){try{procs=JSON.parse(localStorage.getItem(K2)||"[]")||[]}catch(e){procs=[]}}
-function persistP(){try{localStorage.setItem(K2,JSON.stringify(procs))}catch(e){}}
+function persistP(){try{localStorage.setItem(K2,JSON.stringify(procs))}catch(e){}flushProcs()}
 function seed(){loadP();if(!procs.length&&recs.length){uniq("proc").forEach(function(n){var r=recs.filter(function(x){return x.proc===n&&x.amt})[0];procs.push({n:n,p:r?r.amt:0})});persistP()}}
 function selProc(){var s=$("proc"),cur=s.value;
  s.innerHTML='<option value="">Elige un procedimiento…</option>'+procs.map(function(x){return '<option value="'+esc(x.n).replace(/"/g,"&quot;")+'">'+esc(x.n)+(x.p?" · "+money(x.p):"")+"</option>"}).join("")+'<option value="__promo">🎁 PROMOCIÓN</option>';
@@ -306,7 +316,7 @@ function renderItems(){var t=0;
  if(vis.length)$("amt").value=fmt(t)}
 var AK='estetica_agenda_v1',ag=[];
 function loadA(){try{ag=JSON.parse(localStorage.getItem(AK)||'[]')||[]}catch(e){ag=[]}}
-function persistA(){try{localStorage.setItem(AK,JSON.stringify(ag))}catch(e){}}
+function persistA(){try{localStorage.setItem(AK,JSON.stringify(ag))}catch(e){}flushAg()}
 function ds(k){var d=new Date();d.setDate(d.getDate()+k);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function allNames(){var nm=uniq('name'),seen={};nm.forEach(function(v){seen[norm(v)]=1});ag.map(function(a){return a.n}).concat(cl).forEach(function(n){if(!seen[norm(n)]){seen[norm(n)]=1;nm.push(n)}});return nm.filter(function(n){return cx.indexOf(norm(n))<0}).sort(function(a,b){return a.localeCompare(b)})}
 function dlabel(d){var s=new Date(d+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});return(d===ds(0)?'Hoy · ':d===ds(1)?'Mañana · ':'')+s.charAt(0).toUpperCase()+s.slice(1)}
@@ -319,38 +329,73 @@ function setH(v){var p=(v||'').split(':'),H=+p[0];if(!v||isNaN(H)){$('ahh').valu
 function addMin(h,m){var p=h.split(':'),t=((+p[0])*60+(+p[1])+m)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}
 function fmtDu(m){var h=Math.floor(m/60),r=m%60;return(h?h+(h===1?' hora':' horas'):'')+(h&&r?' ':'')+(r?r+' min':'')}
 function duHtml(a){if(!a.du)return'';return'<div class="du"><b>'+fmtDu(a.du)+'</b>'+(a.h?'<small>'+fmtH(addMin(a.h,a.du))+' finaliza</small>':'')+'</div>'}
-function renderAg(){var f=$('af').value,t=ds(0),out='',last='',q=ag.filter(function(a){return f==='all'||(f==='up'?a.d>=t:a.d<t)});
+function renderAg(){var f='up',t=ds(0),out='',last='',q=ag.filter(function(a){return vsel?a.d===vsel:(a.d===t||a.d===ds(1))});
  q.sort(function(a,b){var x=a.d+(a.h||''),y=b.d+(b.h||'');return f==='past'?(y<x?-1:1):(x<y?-1:1)});
  q.forEach(function(a){if(a.d!==last){last=a.d;var c=q.filter(function(z){return z.d===a.d}).length;out+='<div class="day">'+dlabel(a.d)+' <span>· '+c+(c===1?' cita':' citas')+'</span></div>'}
-  out+='<div class="ap'+(a.ok?' dn':'')+'"><button class="ck" data-k="'+a.id+'" title="Atendida">✓</button><div class="h">'+fmtH(a.h)+'</div><div class="i"><b>'+esc(a.n)+'</b>'+(a.ps&&a.ps.length?a.ps:(a.p?[a.p]:[])).map(function(n){return '<small>'+esc(n)+(pOf(n)?' · '+money(pOf(n)):'')+'</small>'}).join('')+'</div>'+duHtml(a)+(a.ok?'':'<div class="bt">'+(isAdm?'<button class="ab" data-e="'+a.id+'">EDITAR</button>':'')+'<button class="ab" data-x="'+a.id+'">BORRAR</button></div>')+'</div>'});
- $('al').innerHTML=out;$('empty4').hidden=q.length>0;
+  out+='<div class="ap'+(a.ok?' dn':'')+'"><button class="ck'+(a.d>t?' fut':'')+'" data-k="'+a.id+'" title="Atendida">✓</button><div class="h">'+fmtH(a.h)+'</div><div class="i"><b>'+esc(a.n)+'</b>'+(a.ps&&a.ps.length?a.ps:(a.p?[a.p]:[])).map(function(n){return '<small>'+esc(n)+(pOf(n)?' · '+money(pOf(n)):'')+'</small>'}).join('')+'</div>'+duHtml(a)+(a.ok?'':'<div class="bt">'+(isAdm?'<button class="ab" data-e="'+a.id+'">EDITAR</button>':'')+'<button class="ab" data-x="'+a.id+'">BORRAR</button></div>')+'</div>'});
+ $('al').innerHTML=out;$('empty4').hidden=q.length>0;$('empty4').textContent=vsel?'No hay citas para este día.':'No hay citas para hoy ni para mañana.';$('vl').textContent=vsel?'Mostrando: '+dlabel(vsel):'Mostrando: hoy y mañana';
  $('a1').textContent=ag.filter(function(a){return a.d===t}).length;$('a2').textContent=ag.filter(function(a){return a.d===ds(1)}).length;$('a3').textContent=ag.filter(function(a){return a.d>=t}).length}
 function showMain(m){document.querySelectorAll('.mtabs button').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-m')===m)});$('m-reg').hidden=m!=='reg';$('m-age').hidden=m!=='age'}
 document.querySelectorAll('.mtabs button').forEach(function(b){b.onclick=function(){showMain(b.getAttribute('data-m'))}});
 function ask(t,yes){$('mn').hidden=false;$('ms').textContent='Sí';$('mt').textContent=t;$('md').hidden=false;$('ms').onclick=function(){$('md').hidden=true;yes()};$('mn').onclick=function(){$('md').hidden=true}}
 function info(t){$('mt').textContent=t;$('mn').hidden=true;$('ms').textContent='Entendido';$('md').hidden=false;$('ms').onclick=function(){$('md').hidden=true}}
 window.claude=window.claude||{use:async function(){return{save:async function(o){var b=new Blob([o.data],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=o.filename;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href)},500)}}}};
-var SHEET_URL='https://script.google.com/macros/s/AKfycbw-b2bG5lv2x4yfB-nSSFTLAlwrOyCA9KVdnreVoVPLqHsgOAuQM8SvuDHlqiRCjpGe/exec',SYK='estetica_sync_v1';
+var SHEET_URL='https://script.google.com/macros/s/AKfycbw-b2bG5lv2x4yfB-nSSFTLAlwrOyCA9KVdnreVoVPLqHsgOAuQM8SvuDHlqiRCjpGe/exec',SYK='estetica_sync_v1',DK='estetica_del_v1',PK='estetica_pdirty',sheetReady=false;
 function getSy(){try{return JSON.parse(localStorage.getItem(SYK)||'[]')||[]}catch(e){return[]}}
 function setSy(a){try{localStorage.setItem(SYK,JSON.stringify(a))}catch(e){}}
+function getDel(){try{return JSON.parse(localStorage.getItem(DK)||'[]')||[]}catch(e){return[]}}
 function rkey(r){return[r.date,norm(r.name),norm(r.proc||''),+r.amt||0].join('|')}
 function setS(t){$('shs').textContent=t}
 function normDate(v){v=String(v||'').trim();if(!v)return'';var m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)return v;m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');var d=new Date(v);if(isNaN(d))return'';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+async function post(obj){var body=JSON.stringify(obj);
+ try{var r=await fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:body});var j=await r.json();return!!(j&&j.ok)}
+ catch(e){try{await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:body});return true}catch(e2){return false}}}
+function citaOut(a){var ps=a.ps&&a.ps.length?a.ps:(a.p?[a.p]:[]);return{Id:String(a.id),Cliente:a.n,Fecha:a.d,Hora:a.h||'',Duracion:a.du||'',Procedimientos:ps.join(' + '),Atendida:!!a.ok}}
+function fromSheet(o){var ps=String(o.Procedimientos||'').split(' + ').filter(Boolean);return{id:Number(o.Id)||o.Id,n:o.Cliente,d:normDate(o.Fecha),h:String(o.Hora||''),du:+o.Duracion||0,ps:ps,p:ps.join(' + '),ok:String(o.Atendida).toUpperCase()==='SI',sy:true}}
+function mergeAg(rows){var m={},dels=getDel().map(String),keep=[];
+ rows.forEach(function(o){m[String(o.Id)]=o});
+ ag.forEach(function(a){var k=String(a.id),s=m[k];
+  if(s){delete m[k];keep.push(a.sy===true?fromSheet(s):a)}
+  else if(a.sy!==true)keep.push(a)});
+ Object.keys(m).forEach(function(k){if(dels.indexOf(k)<0)keep.push(fromSheet(m[k]))});
+ ag=keep;try{localStorage.setItem(AK,JSON.stringify(ag))}catch(e){}}
+function mergeProcs(rows){if(localStorage.getItem(PK))return;
+ if(rows.length){procs=rows.map(function(o){return{n:String(o.Procedimiento||'').trim(),p:num(o.Precio)}}).filter(function(x){return x.n});try{localStorage.setItem(K2,JSON.stringify(procs))}catch(e){}}
+ else if(procs.length){try{localStorage.setItem(PK,'1')}catch(e){}}}
+var fAg=false,fAgAgain=false;
+async function flushAg(){if(!sheetReady)return;if(fAg){fAgAgain=true;return}fAg=true;
+ try{do{fAgAgain=false;
+  var dels=getDel();
+  while(dels.length){if(await post({accion:'borrarCita',Id:dels[0]})){dels.shift();localStorage.setItem(DK,JSON.stringify(dels))}else break}
+  var pend=ag.filter(function(a){return a.sy!==true});
+  for(var j=0;j<pend.length;j++){var a=pend[j],snap=JSON.stringify(citaOut(a));if(await post({accion:'cita',cita:citaOut(a)})){if(JSON.stringify(citaOut(a))===snap)a.sy=true}else break}
+  localStorage.setItem(AK,JSON.stringify(ag))}while(fAgAgain)}catch(e){}
+ fAg=false}
+function sheetDelCita(id){try{var d=getDel();d.push(String(id));localStorage.setItem(DK,JSON.stringify(d))}catch(e){}}
+async function flushProcs(){try{localStorage.setItem(PK,'1')}catch(e){}
+ if(!sheetReady)return;
+ if(await post({accion:'procs',lista:procs.map(function(x){return{Procedimiento:x.n,Precio:+x.p||0}})})){try{localStorage.removeItem(PK)}catch(e){}}}
 async function sheetLoad(){setS('Cargando desde Google Sheets…');
  try{var r=await fetch(SHEET_URL);var j=JSON.parse(await r.text());
-  var rows=Array.isArray(j)?j:(j.data||j.registros||j.rows||j.values||[]);
+  var neu=!Array.isArray(j)&&Array.isArray(j.agenda);
+  var rows=Array.isArray(j)?j:(j.registros||j.data||j.rows||j.values||[]);
   if(rows.length&&Array.isArray(rows[0])){var h=rows[0];rows=rows.slice(1).map(function(a){var o={};h.forEach(function(k,i){o[k]=a[i]});return o})}
   var sy=getSy(),add=0;
   rows.forEach(function(o){var d=normDate(o.Fecha),n=String(o.Cliente||'').trim(),p=String(o.Servicio||'').trim(),a=num(o.Total);if(!d||!n)return;
    var k=[d,norm(n),norm(p),a].join('|');if(sy.indexOf(k)>-1)return;sy.push(k);
-   var ps=p?p.split(' + '):[];recs.push({id:Date.now()+add,name:n,date:d,proc:p,items:ps.map(function(x){return{n:x,p:ps.length===1?a:0}}),amt:a,pay:''});add++;addCl(n)});
-  setSy(sy);if(add)persist();all();setS('Conectado a Google Sheets ✓'+(add?' ('+add+' registros nuevos)':''));return true}
+   var ps=p?p.split(' + '):[];recs.push({id:Date.now()+add,name:n,date:d,proc:p,items:ps.map(function(x){return{n:x,p:ps.length===1?a:0}}),amt:a,pay:String(o.Pago||'')});add++;addCl(n)});
+  setSy(sy);if(add)persist();
+  if(neu){mergeAg(j.agenda);mergeProcs(j.procedimientos||[]);sheetReady=true}
+  all();
+  setS('Conectado a Google Sheets ✓'+(add?' ('+add+' registros nuevos)':'')+(neu?'':' · agenda sin sincronizar: falta actualizar el script'));
+  if(neu){flushAg();if(localStorage.getItem(PK))flushProcs()}
+  return true}
  catch(e){setS('No se pudo leer Google Sheets. Se muestran los datos de este dispositivo.');return false}}
 async function sheetSend(r,refresh){var sy=getSy();sy.push(rkey(r));setSy(sy);setS('Guardando…');
- try{await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({Fecha:r.date,Cliente:r.name,Telefono:'',Servicio:r.proc,Total:+r.amt||0})});
-  if(refresh){await new Promise(function(ok){setTimeout(ok,900)});var ok2=await sheetLoad();setS(ok2?'Guardado en Google Sheets ✓':'Enviado a Google Sheets (no se pudo releer la hoja)')}
-  return true}
- catch(e){var s2=getSy(),ix=s2.indexOf(rkey(r));if(ix>-1){s2.splice(ix,1);setSy(s2)}setS('Guardado en este dispositivo. No se pudo enviar a Google Sheets.');return false}}
+ var ok=await post({accion:'registro',Fecha:r.date,Cliente:r.name,Telefono:'',Servicio:r.proc,Total:+r.amt||0,Pago:r.pay||'',Id:String(r.id)});
+ if(!ok){var s2=getSy(),ix=s2.indexOf(rkey(r));if(ix>-1){s2.splice(ix,1);setSy(s2)}setS('Guardado en este dispositivo. No se pudo enviar a Google Sheets.');return false}
+ if(refresh){await new Promise(function(f){setTimeout(f,900)});var ok2=await sheetLoad();setS(ok2?'Guardado en Google Sheets ✓':'Enviado a Google Sheets (no se pudo releer la hoja)')}
+ return true}
 $('up').onclick=async function(){var sy=getSy(),todo=recs.filter(function(r){return sy.indexOf(rkey(r))<0});
  if(!todo.length){setS('Todo está sincronizado ✓');return}
  for(var i=0;i<todo.length;i++){setS('Subiendo '+(i+1)+' de '+todo.length+'…');if(!(await sheetSend(todo[i],false)))return}
@@ -372,6 +417,7 @@ var isAdm=false,editR=null;
 var editP=null;
 function confirmCita(a){
  if(a.ok){info('Esta cita ya fue confirmada y quedó registrada en el listado de ventas.');return}
+ if(a.d>ds(0)){info('Esta cita es para el '+a.d.split('-').reverse().join('/')+'. Solo se puede confirmar el mismo día de la cita.');return}
  var ps=a.ps&&a.ps.length?a.ps:(a.p?[a.p]:[]);
  if(!ps.length){info('Esta cita no tiene procedimientos. Toca EDITAR y agrega al menos uno para poder confirmarla.');return}
  var its=ps.map(function(n){var x=procs.filter(function(y){return y.n===n})[0];return{n:n,p:x?+x.p||0:0}}),t=its.reduce(function(s,x){return s+x.p},0);
@@ -379,24 +425,34 @@ function confirmCita(a){
  $('cmv').value=fmt(t);document.querySelector('input[name=cpay][value=Efectivo]').checked=true;$('cm').hidden=false;
  $('cmn').onclick=function(){$('cm').hidden=true};
  $('cms').onclick=function(){var rec={id:Date.now(),name:a.n,date:a.d,proc:ps.join(' + '),items:its,amt:num($('cmv').value),pay:document.querySelector('input[name=cpay]:checked').value,cita:a.id};
-  recs.push(rec);persist();addCl(a.n);a.ok=true;a.rid=rec.id;persistA();$('cm').hidden=true;all();sheetSend(rec,true);
+  recs.push(rec);persist();addCl(a.n);a.ok=true;a.sy=false;a.rid=rec.id;persistA();$('cm').hidden=true;all();sheetSend(rec,true);
   $('amsg').textContent='Cita confirmada y registrada en el listado \u2713';setTimeout(function(){$('amsg').textContent=''},3500)}}
 var editA=null;
-function resetA(){editA=null;cliSet('anS','an','');$('ap').selectedIndex=0;avis=[];renderAI();$('adu').selectedIndex=0;setH('');$('adds').textContent='Agendar cita';$('acan').hidden=true}
+function resetA(){editA=null;$('ad').value=ds(0);cliSet('anS','an','');$('ap').selectedIndex=0;avis=[];renderAI();$('adu').selectedIndex=0;setH('');$('adds').textContent='Agendar cita';$('acan').hidden=true}
 var avis=[];
 function pOf(n){var x=procs.filter(function(y){return y.n===n})[0];return x?+x.p||0:0}
 function renderAI(){var t=0;$('aitems').innerHTML=avis.map(function(n,i){var p=pOf(n);t+=p;return '<div class="it"><span>'+esc(n)+(p?' · '+money(p):'')+'</span><button type="button" class="x" data-j="'+i+'" title="Quitar">×</button></div>'}).join('')+(avis.length&&t?'<div class="mut" style="text-align:right">Total: <b>'+money(t)+'</b></div>':'')}
 $('ap').onchange=function(){var v=$('ap').value;if(!v)return;if(avis.indexOf(v)<0)avis.push(v);$('ap').selectedIndex=0;renderAI()};
 $('aitems').onclick=function(e){var j=e.target.getAttribute('data-j');if(j===null)return;avis.splice(+j,1);renderAI()};
 $('acan').onclick=resetA;
-$('af').onchange=renderAg;
+var vsel='';
+function toMin(h){var p=h.split(':');return(+p[0])*60+(+p[1])}
+function setV(d){vsel=d||'';$('vhm').classList.toggle('on',!vsel);$('vd').parentNode.classList.toggle('on',!!vsel);$('vcs').textContent=vsel?vsel.split('-').reverse().join('/'):'Elegir día';renderAg()}
+$('vhm').onclick=function(){$('vd').value='';setV('')};
+$('vd').onchange=function(){setV($('vd').value)};
 $('adds').onclick=function(){var n=$('an').value.trim(),d=$('ad').value,h=$('ah').value;
- if(!n||!d){$('amsg').textContent='Falta nombre o fecha.';return}
+ if(!n){info('Escribe el nombre de la clienta.');return}
+ if(!d){info('Elige la fecha de la cita.');return}
+ if(!h){info('Elige la hora de la cita.');return}
+ var orig=editA?ag.filter(function(y){return y.id===editA})[0]:null;
+ if(!(orig&&orig.d===d&&orig.h===h)){var nw=new Date();if(d<ds(0)||(d===ds(0)&&toMin(h)<nw.getHours()*60+nw.getMinutes())){info('No puedes agendar una cita en una fecha u hora que ya pasó. Elige una hora posterior a la actual.');return}}
+ var du0=+$('adu').value||0,s1=toMin(h),e1=s1+Math.max(du0,1),cf=ag.filter(function(y){if(y.id===editA||y.d!==d||!y.h)return false;var s2=toMin(y.h),e2=s2+Math.max(+y.du||0,1);return s1<e2&&s2<e1})[0];
+ if(cf){info('Ya hay una cita a esa hora: '+cf.n+', a las '+fmtH(cf.h)+(cf.du?' ('+fmtDu(cf.du)+')':'')+'. Elige otra hora.');return}
  var ex=allNames().filter(function(x){return norm(x)===norm(n)})[0];if(ex)n=ex;
- if(editA){var ea=ag.filter(function(y){return y.id===editA})[0];if(ea){ea.n=n;ea.d=d;ea.h=h;ea.ps=avis.slice();ea.p=avis.join(' + ');ea.du=+$('adu').value||0}}else ag.push({id:Date.now(),n:n,d:d,h:h,ps:avis.slice(),p:avis.join(' + '),du:+$('adu').value||0});addCl(n);
- persistA();var was=editA;resetA();$('amsg').textContent=was?'Cita actualizada ✓':'Cita agendada ✓';setTimeout(function(){$('amsg').textContent=''},2500);all()};
+ if(editA){var ea=ag.filter(function(y){return y.id===editA})[0];if(ea){ea.n=n;ea.d=d;ea.h=h;ea.ps=avis.slice();ea.p=avis.join(' + ');ea.du=+$('adu').value||0;ea.sy=false}}else ag.push({id:Date.now(),n:n,d:d,h:h,ps:avis.slice(),p:avis.join(' + '),du:+$('adu').value||0});addCl(n);
+ persistA();var was=editA;resetA();$('amsg').textContent=was?'Cita actualizada ✓':'Cita agendada para el '+d.split('-').reverse().join('/')+' ✓';setTimeout(function(){$('amsg').textContent=''},2500);all()};
 $('al').onclick=function(e){var k=e.target.getAttribute('data-k');if(k){var ak=ag.filter(function(y){return String(y.id)===k})[0];if(ak)confirmCita(ak);return}var c=e.target.getAttribute('data-e'),x=e.target.getAttribute('data-x');
- if(x){var ax=ag.filter(function(y){return String(y.id)===x})[0];if(ax&&ax.ok){info('Esta cita ya fue confirmada y está registrada, no se puede borrar.');return}ask('¿Desea borrar la cita?',function(){ag=ag.filter(function(a){return String(a.id)!==x});if(String(editA)===x)resetA();persistA();all()});return}
+ if(x){var ax=ag.filter(function(y){return String(y.id)===x})[0];if(ax&&ax.ok){info('Esta cita ya fue confirmada y está registrada, no se puede borrar.');return}ask('¿Desea borrar la cita?',function(){sheetDelCita(x);ag=ag.filter(function(a){return String(a.id)!==x});if(String(editA)===x)resetA();persistA();all()});return}
  if(c&&isAdm){var a=ag.filter(function(y){return String(y.id)===c})[0];if(!a)return;
   editA=a.id;cliSet('anS','an',a.n);$('ad').value=a.d;setH(a.h);avis=a.ps?a.ps.slice():(a.p?[a.p]:[]);renderAI();$('adu').value=a.du||'';if($('adu').selectedIndex<0)$('adu').selectedIndex=0;$('adds').textContent='Guardar cambios';$('acan').hidden=false;
   
